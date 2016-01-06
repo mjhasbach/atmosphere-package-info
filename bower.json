@@ -1,0 +1,14 @@
+{
+  "name": "atmosphere-package-info",
+  "main": "dist/atmospherePackageInfo.js",
+  "dependencies": {
+    "superagent": "1.6.1"
+  },
+  "ignore": [
+    "*",
+    "!dist/",
+    "!dist/*",
+    "!LICENSE",
+    "!README.md"
+  ]
+}
