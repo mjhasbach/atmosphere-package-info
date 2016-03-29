@@ -1,4 +1,5 @@
-var should = require('chai').should(),
+var uuid = require('uuid'),
+    should = require('chai').should(),
     atmospherePackageInfo = require('../dist/atmospherePackageInfo');
 
 describe('atmosphere-package-info', function() {
@@ -30,4 +31,16 @@ describe('atmosphere-package-info', function() {
             done();
         });
     });
+    it(
+        'should call back an error if invalid packages are supplied, but also call back info about valid packages',
+        function(done) {
+            atmospherePackageInfo(['stevezhu:lodash', uuid.v4()], function(err, packages) {
+                should.exist(err);
+                packages.should.be.an('array');
+                packages.should.have.length(1);
+                packages[0].latestVersion.git.should.equal('https://github.com/stevezhu/meteor-lodash.git');
+                done();
+            });
+        }
+    );
 });
