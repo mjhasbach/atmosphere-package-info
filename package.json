@@ -1,6 +1,6 @@
 {
   "name": "atmosphere-package-info",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Get information associated with one or more Meteor Atmosphere packages",
   "license": "MIT",
   "homepage": "https://github.com/mjhasbach/atmosphere-package-info",
