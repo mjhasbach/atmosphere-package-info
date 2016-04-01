@@ -18,17 +18,26 @@
  * @param {string|Array<string>} packages - One or more Meteor Atmosphere package names
  * @param {atmospherePackageInfoCallback} cb - A callback to be executed after package information is collected
  * @example
- atmospherePackageInfo(['stevezhu:lodash', 'suxez:jquery-serialize-object'], function(err, packages) {
+ atmospherePackageInfo(['stevezhu:lodash', 'mjhasbach:some-invalid-pkg'], function(err, packages) {
     if (err) { return console.error(err); }
-    console.log(packages[0].latestVersion.git);
+
+    packages.forEach(function(pkg) {
+        if (pkg instanceof Error) {
+            //Package not found on Atmosphere
+            console.error(pkg);
+        }
+        else {
+            console.log(pkg.latestVersion.git);
+        }
+    });
 });
  */
 function atmospherePackageInfo(packages, cb) {
     /**
      * The atmospherePackageInfo callback
      * @callback atmospherePackageInfoCallback
-     * @param {Object|null} err - An error object if an error occurred
-     * @param {Array<Object>} packages - Information about one or more Meteor Atmosphere packages
+     * @param {Object|null} err - An Error object if an error occurred
+     * @param {Object<Object>} packages - Information about one or more Meteor Atmosphere packages. packages['packageName'] will be an Error object if that package was not found on Atmosphere.
      */
     var names = void 0;
 
@@ -79,73 +88,65 @@ function atmospherePackageInfo(packages, cb) {
             return;
         }
 
-        var invalidPkgs = [],
+        var packages = {},
             reqPkgs = names.split(',');
 
-        if (reqPkgs.length !== res.body.length) {
-            var _iteratorNormalCompletion2 = true;
-            var _didIteratorError2 = false;
-            var _iteratorError2 = undefined;
+        var _iteratorNormalCompletion2 = true;
+        var _didIteratorError2 = false;
+        var _iteratorError2 = undefined;
 
-            try {
-                for (var _iterator2 = reqPkgs[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                    var reqPkg = _step2.value;
+        try {
+            for (var _iterator2 = reqPkgs[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                var reqPkg = _step2.value;
+                var _iteratorNormalCompletion3 = true;
+                var _didIteratorError3 = false;
+                var _iteratorError3 = undefined;
 
-                    var isValidPkg = void 0;
+                try {
+                    for (var _iterator3 = res.body[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                        var resPkg = _step3.value;
 
-                    var _iteratorNormalCompletion3 = true;
-                    var _didIteratorError3 = false;
-                    var _iteratorError3 = undefined;
-
-                    try {
-                        for (var _iterator3 = res.body[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-                            var resPkg = _step3.value;
-
-                            if (resPkg.name === reqPkg) {
-                                isValidPkg = true;
-                                break;
-                            }
-                        }
-                    } catch (err) {
-                        _didIteratorError3 = true;
-                        _iteratorError3 = err;
-                    } finally {
-                        try {
-                            if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                                _iterator3.return();
-                            }
-                        } finally {
-                            if (_didIteratorError3) {
-                                throw _iteratorError3;
-                            }
+                        if (resPkg.name === reqPkg) {
+                            delete resPkg.name;
+                            packages[reqPkg] = resPkg;
+                            break;
                         }
                     }
-
-                    if (!isValidPkg) {
-                        invalidPkgs.push(reqPkg);
+                } catch (err) {
+                    _didIteratorError3 = true;
+                    _iteratorError3 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                            _iterator3.return();
+                        }
+                    } finally {
+                        if (_didIteratorError3) {
+                            throw _iteratorError3;
+                        }
                     }
                 }
-            } catch (err) {
-                _didIteratorError2 = true;
-                _iteratorError2 = err;
+
+                if (!packages[reqPkg]) {
+                    packages[reqPkg] = new Error('Package not found on Atmosphere');
+                }
+            }
+        } catch (err) {
+            _didIteratorError2 = true;
+            _iteratorError2 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                    _iterator2.return();
+                }
             } finally {
-                try {
-                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
-                        _iterator2.return();
-                    }
-                } finally {
-                    if (_didIteratorError2) {
-                        throw _iteratorError2;
-                    }
+                if (_didIteratorError2) {
+                    throw _iteratorError2;
                 }
             }
         }
 
-        if (invalidPkgs.length) {
-            err = new Error('The following package' + (invalidPkgs.length > 1 ? 's were' : ' was') + (' not found on Meteor: ' + invalidPkgs.join(', ')));
-        }
-
-        cb(err, res.body);
+        cb(null, packages);
     });
 }
 return atmospherePackageInfo;
